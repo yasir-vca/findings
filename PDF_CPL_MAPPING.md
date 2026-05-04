@@ -1,7 +1,7 @@
 # VoyagerGo PDF/Document CPL Mapping
 
 Date: 2026-05-04
-Owner: TODO
+Owner: Mohammed Yasir
 Scope: Frontend call sites that trigger PDF/document/template generation or retrieval relevant to localization.
 
 ## Status Legend
@@ -10,12 +10,6 @@ Scope: Frontend call sites that trigger PDF/document/template generation or retr
 - needs change: no explicit language/CPL is passed (relies on implicit/default behavior)
 - needs deeper trace: frontend call found, but backend/indirect path must be validated before deciding if change is required
 - out of scope: related document/image upload or preview path exists, but it does not generate a PDF/document template in the RN frontend
-
-## Global Context
-
-- `Accept-Language` header is set centrally in `src/networking/request.ts` via `config.headers[MVHHeaders.ACCEPT_LANGUAGE] = getLocale() || ''`.
-- This does not guarantee backend document rendering uses language/CPL unless endpoint contract explicitly honors header-based localization.
-- Several story filenames from the ticket do not exist verbatim in this RN repo. Where that happened, the closest current frontend equivalent is called out explicitly below.
 
 ## Consolidated Mapping
 
@@ -73,16 +67,6 @@ Downstream trace targets:
 - Backend contracts for the above endpoints to confirm whether Accept-Language header is authoritative.
 - Whether `uniqueFormId` captures language in orchestration and propagates across get/submit stages.
 
-## Related Paths Reviewed But Excluded From Generator Scope
-
-| Domain / Area                   | File                                                                  | Why excluded                                                                                                                        |
-| ------------------------------- | --------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
-| Patient attachment preview      | `src/screens/PatientAttachmentScreen.tsx`                             | Opens an already-stored attachment via `documentmanagement/v1/api/documents?contentType=true&filePath=...`; no template generation. |
-| Communication attachment view   | `src/components/Communications/MessageList/MessageItems/TextItem.tsx` | Downloads attachment previews for message media thumbnails; no template generation.                                                 |
-| Patient avatar image fetch      | `src/components/PatientCard/PatientCardAvatar.tsx`                    | Uses `src/networking/documentsData.ts` for profile images only.                                                                     |
-| Patient document uploads        | `src/networking/documentManagement/documentManagementApi.ts`          | Upload/confirm storage operations only; not PDF/template generation.                                                                |
-| Communication attachment upload | `src/networking/communicationService/communicationServiceApis.ts`     | Upload/confirm storage operations only; not PDF/template generation.                                                                |
-
 ## Ticket-Ready Summary
 
 - In-scope frontend inventory identified: 16 call paths.
@@ -91,8 +75,3 @@ Downstream trace targets:
 - Closest current frontend equivalents were mapped where they exist, especially visit PVQ/ATPC online forms through checklist -> `digitalformsorchestration` appointment `geturl`.
 - Clearest implementation defect found in current frontend code: patient document metadata hardcodes `language: 'en'` in both `src/networking/patientDocuments/patientDocumentsApi.ts` and `src/networking/patientDocumentData.ts`.
 
-## Follow-Up If Engineering Change Is Requested
-
-- Replace hardcoded `language: 'en'` with locale-derived CPL in patient document metadata builders.
-- Add explicit CPL/language to finance estimate print, wellness contract get/sign/preview, visit appointment digital form `geturl`, and document queue request payloads if backend contracts support it.
-- Confirm whether ECM and signature get/submit endpoints already inherit language through header/session semantics before changing request shapes.
